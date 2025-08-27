@@ -5,29 +5,32 @@ import random
 from datetime import datetime
 import time
 
-
 # -----------------------------
-# Google スプレッドシート認証
+# Google スプレッドシート認証（キャッシュ機能を追加）
 # -----------------------------
-scope = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
+@st.cache_resource
+def get_spreadsheet():
+    """
+    Googleスプレッドシートに接続し、シートオブジェクトを返す。
+    @st.cache_resourceデコレータにより、この関数の結果はキャッシュされ、
+    アプリの再実行時に関数が再呼び出しされるのを防ぎます。
+    """
+    scope = [
+        "https://www.googleapis.com/auth/spreadsheets",
+        "https://www.googleapis.com/auth/drive"
+    ]
+    creds_dict = st.secrets["gcp_service_account"]
+    creds = Credentials.from_service_account_info(
+        creds_dict,
+        scopes=scope
+    )
+    client = gspread.authorize(creds)
+    sheet_id = st.secrets["sheet_id"]
+    sheet = client.open_by_key(sheet_id).sheet1
+    return sheet
 
-# Secrets からサービスアカウント情報を取得
-# st.secretsは .streamlit/secrets.toml の情報を辞書として読み込みます
-creds_dict = st.secrets["gcp_service_account"]
-creds = Credentials.from_service_account_info(
-    creds_dict,
-    scopes=scope
-)
-
-# 認証情報を使ってクライアントを初期化
-client = gspread.authorize(creds)
-
-# SecretsからシートIDを取得し、スプレッドシートを開く
-sheet_id = st.secrets["sheet_id"]
-sheet = client.open_by_key(sheet_id).sheet1
+# キャッシュされた関数を呼び出して、シートオブジェクトを取得
+sheet = get_spreadsheet()
 
 
 # --- ロジック設定 ---
@@ -61,12 +64,13 @@ def end_test():
 
     # --- Google Sheets に保存 ---
     try:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        row_data = [timestamp, name, str(final_level)]
+        # 保存するデータを氏名と最終レベルのみに変更
+        row_data = [name, str(final_level)]
         sheet.append_row(row_data)
         st.write("結果をGoogle Sheetsに保存しました ✅")
     except Exception as e:
-        st.error("結果の保存に失敗しました。")
+        # エラーが発生した場合、内容を表示するように変更
+        st.error(f"結果の保存に失敗しました: {e}")
 
     # 状態をリセット
     st.session_state.test_started = False
