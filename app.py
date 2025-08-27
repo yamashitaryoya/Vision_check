@@ -157,8 +157,7 @@ else:
     
     button_labels = DIRECTION_NAMES + ["わからない"]
     cols = st.columns(len(button_labels))
-
-    cols = st.columns(5)
+    
     for i, direction in enumerate(DIRECTION_NAMES):
         with cols[i]:
             if st.button(direction, use_container_width=True, key=f"btn_{direction}"):
