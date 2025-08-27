@@ -113,7 +113,7 @@ st.markdown("---")
 with st.expander("こちらをお読みください", expanded=True):
     st.subheader("使い方")
     st.markdown(f"""
-    1.  名前+左,右(例：福田浩右)を入力し、「検査開始」ボタンを押してください。
+    1.  氏名を入力し、「検査開始」ボタンを押してください。
     2.  各レベルで**{CORRECT_TO_PASS}問正解**すると次のレベルに進みます。
     3.  **{MISTAKE_LIMIT}問間違える**と、その時点で測定は**終了**となります。
     4.  途中でやめる場合は「測定終了」ボタンを押してください。
@@ -123,7 +123,6 @@ with st.expander("こちらをお読みください", expanded=True):
     -   **腕を完全に伸ばした状態**で、画面から離れて検査を行ってください。
     -   普段、眼鏡やコンタクトレンズを使用している場合は、必ず装着した状態で検査を行ってください。
     -   **画面の明るさを100% に設定**し、**ダークモードの場合はオフに設定**し、明るい部屋で検査を行ってください。
-    -   **片目ずつ**、目を細めずに見てください。
     """)
 
 st.markdown("---")
@@ -131,7 +130,7 @@ st.markdown("---")
 # --- 測定部分 ---
 if not st.session_state.test_started:
     st.header("測定開始")
-    name = st.text_input("お名前を入力してください　名前+左,右(例：福田浩右)", key="user_name")
+    name = st.text_input("氏名を入力してください", key="user_name")
     if st.button("測定開始"):
         if name:
             st.session_state.test_started = True
@@ -139,7 +138,7 @@ if not st.session_state.test_started:
             init_test_state()
             st.rerun()
         else:
-            st.warning("お名前を入力してください。")
+            st.warning("氏名を入力してください。")
 else:
     st.header("測定中")
     level = st.session_state.current_level
@@ -154,9 +153,12 @@ else:
         unsafe_allow_html=True,
     )
     
-    st.write("マークの切れ目の方向はどちらですか？")
+    st.write("切れ目の方向はどちらですか？")
+    
+    button_labels = DIRECTION_NAMES + ["わからない"]
+    cols = st.columns(len(button_labels))
 
-    cols = st.columns(4)
+    cols = st.columns(5)
     for i, direction in enumerate(DIRECTION_NAMES):
         with cols[i]:
             if st.button(direction, use_container_width=True, key=f"btn_{direction}"):
