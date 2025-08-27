@@ -175,8 +175,8 @@ if st.session_state.test_started:
                     sheet.append_row([timestamp, name, str(final_vision), str(st.session_state.history)])
                     st.write("結果をGoogle Sheetsに保存しました ✅")
                 except Exception as e:
-                st.error("結果の保存に失敗しました。")
-                st.error(e)
+                    st.error("結果の保存に失敗しました。")
+                    st.error(e)
             
             # 状態をリセット
             st.session_state.test_started = False
