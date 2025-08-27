@@ -158,15 +158,15 @@ else:
     button_labels = DIRECTION_NAMES + ["わからない"]
     cols = st.columns(len(button_labels))
     
-    for i, direction in enumerate(DIRECTION_NAMES):
+    for i, label in enumerate(button_labels):
         with cols[i]:
-            if st.button(direction, use_container_width=True, key=f"btn_{direction}"):
+            if st.button(label, use_container_width=True, key=f"btn_{label}"):
                 
-                if direction == "わからない":
+                if label == "わからない":
                     is_correct = False
                 else:
-                    is_correct = (direction == st.session_state.correct_direction)
-                    
+                    is_correct = (label == st.session_state.correct_direction)
+                
                 st.session_state.history.append((level, is_correct))
                 
                 st.session_state.trial_count += 1
@@ -196,7 +196,6 @@ else:
                         st.session_state.correct_count = 0
                         time.sleep(0.5)
 
-                    # ★ 変更点: 現在の向きを除外して次の向きを選択
                     previous_direction = st.session_state.correct_direction
                     possible_directions = [d for d in DIRECTION_NAMES if d != previous_direction]
                     st.session_state.correct_direction = random.choice(possible_directions)
