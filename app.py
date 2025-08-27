@@ -32,7 +32,7 @@ sheet = client.open_by_key(sheet_id).sheet1
 
 
 # --- ロジック設定 ---
-TRIALS_PER_LEVEL = 5  # 1レベルあたりの最大試行回数
+TRIALS_PER_LEVEL = 4  # 1レベルあたりの最大試行回数
 CORRECT_TO_PASS = 3   # クリアに必要な正解数
 FAIL_LIMIT = TRIALS_PER_LEVEL - CORRECT_TO_PASS + 1 # 失敗が確定する不正解数 (この場合は3)
 
@@ -65,7 +65,7 @@ if "test_started" not in st.session_state:
     init_test_state()
 
 # --- アプリの表示部分 ---
-st.title("総体能力測定")
+st.title("しりょくけんさ")
 st.markdown("---")
 
 with st.expander("こちらをお読みください", expanded=True):
