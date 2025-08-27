@@ -80,7 +80,7 @@ with st.expander("こちらをお読みください", expanded=True):
     st.warning("""
     -   **腕を完全に伸ばした状態**で、画面から離れて検査を行ってください。
     -   普段、眼鏡やコンタクトレンズを使用している場合は、必ず装着した状態で検査を行ってください。
-    -   **画面を100%明るく**し、**ダークモードの場合はオフ**にし、明るい部屋で検査を行ってください。
+    -   **画面の明るさを100%**し、**ダークモードの場合はオフ**にし、明るい部屋で検査を行ってください。
     -   **片目ずつ**、目を細めずに見てください。
     """)
 
@@ -107,7 +107,7 @@ else:
 
     rotate_angle = DIRECTIONS[st.session_state.correct_direction]
     st.markdown(
-        f"<p style='font-size:{size}px; text-align:center; transform: rotate({rotate_angle}deg);'>C</p>",
+        f"<p style='font-size:{size}px; text-align:center; transform: rotate({rotate_angle}deg);'>c</p>",
         unsafe_allow_html=True,
     )
     
