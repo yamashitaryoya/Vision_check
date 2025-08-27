@@ -11,42 +11,75 @@ scope = [
 ]
 
 # Secrets からサービスアカウント情報を取得
+# st.secretsは .streamlit/secrets.toml の情報を辞書として読み込みます
+creds_dict = st.secrets["gcp_service_account"]
 creds = Credentials.from_service_account_info(
-    st.secrets["gcp_service_account"],
+    creds_dict,
     scopes=scope
 )
 
+# 認証情報を使ってクライアントを初期化
 client = gspread.authorize(creds)
-sheet = client.open_by_key(st.secrets["sheet_id"]).sheet1
 
-# -----------------------------
-# Streamlit UI
-# -----------------------------
-st.title("簡易視力検査シミュレーション")
+# SecretsからシートIDを取得し、スプレッドシートを開く
+sheet_id = st.secrets["sheet_id"]
+sheet = client.open_by_key(sheet_id).sheet1
+
+# 視力表の文字
+TEST_LETTERS = ["C", "D", "E", "F", "G", "O", "P", "Q"]
+VISION_LEVELS = {1.0: 40, 0.7: 60, 0.5: 80, 0.3: 100, 0.1: 150}
+
+if "current_level" not in st.session_state:
+    st.session_state.current_level = 1.0
+if "history" not in st.session_state:
+    st.session_state.history = []
 
 # 名前入力
-name = st.text_input("名前を入力してください")
+name = st.text_input("被験者の名前を入力してください")
 
-# 視力選択
-st.subheader("視力を選択してください")
-vision_options = ["1.5", "1.2", "1.0", "0.8", "0.6", "0.4", "0.2", "0.1"]
-vision = st.selectbox("視力", vision_options)
+st.write("画面に表示される文字を読んでください。")
 
-# 保存ボタン
-if st.button("結果を保存"):
+# ランダムに文字を表示
+letter = random.choice(TEST_LETTERS)
+size = VISION_LEVELS[st.session_state.current_level]
+st.markdown(f"<p style='font-size:{size}px; text-align:center;'>{letter}</p>", unsafe_allow_html=True)
+
+col1, col2 = st.columns(2)
+
+with col1:
+    if st.button("Yes（読めた）"):
+        st.session_state.history.append((st.session_state.current_level, True))
+        levels = list(VISION_LEVELS.keys())
+        idx = levels.index(st.session_state.current_level)
+        if idx > 0:
+            st.session_state.current_level = levels[idx - 1]
+
+with col2:
+    if st.button("No（読めない）"):
+        st.session_state.history.append((st.session_state.current_level, False))
+        levels = list(VISION_LEVELS.keys())
+        idx = levels.index(st.session_state.current_level)
+        if idx < len(levels) - 1:
+            st.session_state.current_level = levels[idx + 1]
+
+# 検査終了
+if st.button("検査終了"):
     if not name:
-        st.error("名前を入力してください")
-    else:
-        # Google スプレッドシートに追加
-        sheet.append_row([name, vision])
-        st.success(f"{name}さんの視力 {vision} を保存しました")
+        st.warning("名前を入力してください。")
+    elif st.session_state.history:
+        readable_levels = [lvl for lvl, result in st.session_state.history if result]
+        final_vision = max(readable_levels) if readable_levels else 0.1
 
-# -----------------------------
-# 過去データ表示（任意）
-# -----------------------------
-if st.checkbox("過去の結果を表示"):
-    data = sheet.get_all_records()
-    if data:
-        st.table(data)
+        st.success(f"{name} さんの推定視力は **{final_vision}** です")
+
+        # Google Sheets に保存
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        sheet.append_row([timestamp, name, final_vision, str(st.session_state.history)])
+
+        st.write("結果をGoogle Sheetsに保存しました ✅")
+
+        # リセット
+        st.session_state.current_level = 1.0
+        st.session_state.history = []
     else:
-        st.info("まだ記録はありません")
+        st.warning("まだ検査を行っていません。")
