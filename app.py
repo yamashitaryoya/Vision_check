@@ -36,18 +36,25 @@ st.set_page_config(page_title="簡易視力検査アプリ", layout="centered")
 
 # 視力レベルとそれに対応する文字サイズ(px)
 VISION_LEVELS = {
-    "1.5": 20,
-    "1.2": 30,
-    "1.0": 40,
-    "0.9": 45,
-    "0.8": 50,
-    "0.7": 60,
-    "0.6": 70,
-    "0.5": 80,
-    "0.4": 90,
-    "0.3": 100,
-    "0.2": 120,
-    "0.1": 150,
+    "1": 1,
+    "2": 2,
+    "3": 3,
+    "4": 4,
+    "5": 5,
+    "6": 6,
+    "7": 7,
+    "8": 8,
+    "9": 9,
+    "10": 10,
+    "11": 11,
+    "12": 12,
+    "13": 13,
+    "14": 14,
+    "15": 15,
+    "16": 16,
+    "17": 17,
+    "18": 18,
+    "19": 19,
 }
 LEVELS_LIST = list(VISION_LEVELS.keys())
 
@@ -59,7 +66,7 @@ DIRECTION_NAMES = list(DIRECTIONS.keys())
 # --- Session State の初期化 ---
 # アプリケーションの状態を管理するための変数
 if "current_level" not in st.session_state:
-    st.session_state.current_level = "1.0"  # 開始時の視力レベル
+    st.session_state.current_level = "10"  # 開始時の視力レベル
 if "history" not in st.session_state:
     st.session_state.history = []  # 検査履歴を保存
 if "correct_direction" not in st.session_state:
@@ -102,7 +109,7 @@ if st.button("検査開始", disabled=st.session_state.test_started):
     if name:
         st.session_state.test_started = True
         # 検査開始時に状態をリセット
-        st.session_state.current_level = "1.0"
+        st.session_state.current_level = "10"
         st.session_state.history = []
         st.rerun()
     else:
