@@ -28,61 +28,163 @@ client = gspread.authorize(creds)
 sheet_id = st.secrets["sheet_id"]
 sheet = client.open_by_key(sheet_id).sheet1
 
-# 視力表の文字
-TEST_LETTERS = ["C", "D", "E", "F", "G", "O", "P", "Q"]
-VISION_LEVELS = {1.0: 40, 0.7: 60, 0.5: 80, 0.3: 100, 0.1: 150}
 
+
+
+# --- アプリの基本設定 ---
+st.set_page_config(page_title="簡易視力検査アプリ", layout="centered")
+
+# 視力レベルとそれに対応する文字サイズ(px)
+VISION_LEVELS = {
+    "1.5": 20,
+    "1.2": 30,
+    "1.0": 40,
+    "0.9": 45,
+    "0.8": 50,
+    "0.7": 60,
+    "0.6": 70,
+    "0.5": 80,
+    "0.4": 90,
+    "0.3": 100,
+    "0.2": 120,
+    "0.1": 150,
+}
+LEVELS_LIST = list(VISION_LEVELS.keys())
+
+# ランドルト環の向き (CSSの回転角度に対応)
+DIRECTIONS = {"上": 0, "右": 90, "下": 180, "左": 270}
+DIRECTION_NAMES = list(DIRECTIONS.keys())
+
+
+# --- Session State の初期化 ---
+# アプリケーションの状態を管理するための変数
 if "current_level" not in st.session_state:
-    st.session_state.current_level = 1.0
+    st.session_state.current_level = "1.0"  # 開始時の視力レベル
 if "history" not in st.session_state:
-    st.session_state.history = []
+    st.session_state.history = []  # 検査履歴を保存
+if "correct_direction" not in st.session_state:
+    st.session_state.correct_direction = random.choice(DIRECTION_NAMES)
+if "test_started" not in st.session_state:
+    st.session_state.test_started = False
 
-# 名前入力
-name = st.text_input("被験者の名前を入力してください")
 
-st.write("画面に表示される文字を読んでください。")
+# --- アプリの表示部分 ---
+st.title("簡易視力検査アプリ")
+st.markdown("---")
 
-# ランダムに文字を表示
-letter = random.choice(TEST_LETTERS)
-size = VISION_LEVELS[st.session_state.current_level]
-st.markdown(f"<p style='font-size:{size}px; text-align:center;'>{letter}</p>", unsafe_allow_html=True)
+# --- 使い方と注意書き ---
+with st.expander("初めての方はこちらをお読みください", expanded=True):
+    st.header("使い方")
+    st.markdown("""
+    1.  **お名前を入力**し、**「検査開始」**ボタンを押してください。
+    2.  画面中央に**ランドルト環（輪っかの切れ目）**が表示されます。
+    3.  切れ目の方向（上、下、左、右）を**ボタンで回答**してください。
+    4.  正解すると、より小さいランドルト環が表示されます（次のレベルへ）。
+    5.  不正解の場合、より大きいランドルト環が表示されます（前のレベルへ）。
+    6.  測定を終了したい場合は**「検査終了」**ボタンを押してください。推定視力が表示されます。
+    """)
 
-col1, col2 = st.columns(2)
+    st.header("ご注意")
+    st.warning("""
+    -   **本アプリはあくまで簡易的なものです。** 正確な視力測定には、必ず眼科専門医の診断を受けてください。
+    -   検査を行う際は、**PCモニターから約1メートル、スマートフォンからは約40cm**離れてください。
+    -   画面を明るくし、明るい部屋で検査を行ってください。
+    -   片目ずつ、目を細めずにリラックスして見てください。
+    """)
 
-with col1:
-    if st.button("Yes（読めた）"):
-        st.session_state.history.append((st.session_state.current_level, True))
-        levels = list(VISION_LEVELS.keys())
-        idx = levels.index(st.session_state.current_level)
-        if idx > 0:
-            st.session_state.current_level = levels[idx - 1]
+st.markdown("---")
 
-with col2:
-    if st.button("No（読めない）"):
-        st.session_state.history.append((st.session_state.current_level, False))
-        levels = list(VISION_LEVELS.keys())
-        idx = levels.index(st.session_state.current_level)
-        if idx < len(levels) - 1:
-            st.session_state.current_level = levels[idx + 1]
+# --- 検査部分 ---
+st.header("視力検査")
 
-# 検査終了
-if st.button("検査終了"):
-    if not name:
-        st.warning("名前を入力してください。")
-    elif st.session_state.history:
-        readable_levels = [lvl for lvl, result in st.session_state.history if result]
-        final_vision = max(readable_levels) if readable_levels else 0.1
+name = st.text_input("お名前を入力してください", key="user_name")
 
-        st.success(f"{name} さんの推定視力は **{final_vision}** です")
-
-        # Google Sheets に保存
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        sheet.append_row([timestamp, name, final_vision, str(st.session_state.history)])
-
-        st.write("結果をGoogle Sheetsに保存しました ✅")
-
-        # リセット
-        st.session_state.current_level = 1.0
+if st.button("検査開始", disabled=st.session_state.test_started):
+    if name:
+        st.session_state.test_started = True
+        # 検査開始時に状態をリセット
+        st.session_state.current_level = "1.0"
         st.session_state.history = []
+        st.rerun()
     else:
-        st.warning("まだ検査を行っていません。")
+        st.warning("お名前を入力してください。")
+
+
+if st.session_state.test_started:
+    # 現在の視力レベルと文字サイズを取得
+    level = st.session_state.current_level
+    size = VISION_LEVELS[level]
+    
+    st.info(f"現在の検査レベル: 視力 {level}")
+
+    # ランドルト環を表示 (HTMLとCSSで回転させる)
+    rotate_angle = DIRECTIONS[st.session_state.correct_direction]
+    st.markdown(
+        f"<p style='font-size:{size}px; text-align:center; transform: rotate({rotate_angle}deg);'>C</p>",
+        unsafe_allow_html=True,
+    )
+    
+    st.write("ランドルト環の切れ目の方向はどちらですか？")
+
+    # 回答ボタンを4つ横に並べる
+    cols = st.columns(4)
+    for i, direction in enumerate(DIRECTION_NAMES):
+        with cols[i]:
+            if st.button(direction, use_container_width=True):
+                is_correct = (direction == st.session_state.correct_direction)
+                
+                # 履歴に追加
+                st.session_state.history.append((level, is_correct))
+                
+                # 正解・不正解に応じてレベルを更新
+                idx = LEVELS_LIST.index(level)
+                if is_correct:
+                    st.success("正解です！")
+                    # 次のレベルへ（リストのより若いインデックスへ）
+                    if idx > 0:
+                        st.session_state.current_level = LEVELS_LIST[idx - 1]
+                else:
+                    st.error("不正解です。")
+                    # 前のレベルへ（リストのより大きいインデックスへ）
+                    if idx < len(LEVELS_LIST) - 1:
+                        st.session_state.current_level = LEVELS_LIST[idx + 1]
+
+                # 次の問題のために新しい向きをランダムに設定
+                st.session_state.correct_direction = random.choice(DIRECTION_NAMES)
+                st.rerun() # 画面を再読み込みして新しい問題を表示
+
+# --- 検査終了処理 ---
+if st.session_state.test_started:
+    if st.button("検査終了", type="primary"):
+        if st.session_state.history:
+            # 正解したレベルの中から、最も良い視力（数値が大きい）を結果とする
+            correct_levels = [float(lvl) for lvl, result in st.session_state.history if result]
+            
+            if correct_levels:
+                final_vision = max(correct_levels)
+                st.success(f"## {name} さんの推定視力は **{final_vision}** です")
+                st.balloons()
+            else:
+                final_vision = "0.1未満"
+                st.warning(f"## {name} さんの推定視力は **{final_vision}** です")
+
+            # --- Google Sheets に保存 ---
+            if st.session_state.get("gsheet_ready", False):
+                try:
+                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    sheet.append_row([timestamp, name, str(final_vision), str(st.session_state.history)])
+                    st.write("結果をGoogle Sheetsに保存しました ✅")
+                except Exception as e:
+                st.error("結果の保存に失敗しました。")
+                st.error(e)
+            
+            # 状態をリセット
+            st.session_state.test_started = False
+            st.session_state.history = []
+            st.session_state.current_level = "1.0"
+            
+        else:
+            st.warning("まだ一度も回答していません。")
+            
+        # 終了後に再実行して初期画面に戻す
+        st.rerun()
