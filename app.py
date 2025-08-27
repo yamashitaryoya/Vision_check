@@ -162,7 +162,12 @@ else:
     for i, direction in enumerate(DIRECTION_NAMES):
         with cols[i]:
             if st.button(direction, use_container_width=True, key=f"btn_{direction}"):
-                is_correct = (direction == st.session_state.correct_direction)
+                
+                if direction == "わからない":
+                    is_correct = False
+                else:
+                    is_correct = (direction == st.session_state.correct_direction)
+                    
                 st.session_state.history.append((level, is_correct))
                 
                 st.session_state.trial_count += 1
