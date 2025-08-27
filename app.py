@@ -131,7 +131,7 @@ st.markdown("---")
 # --- 測定部分 ---
 if not st.session_state.test_started:
     st.header("測定開始")
-    name = st.text_input("お名前を入力してください", key="user_name")
+    name = st.text_input("お名前を入力してください　名前+左,右(例：福田浩右)", key="user_name")
     if st.button("測定開始"):
         if name:
             st.session_state.test_started = True
