@@ -69,14 +69,14 @@ st.title("しりょくけんさ")
 st.markdown("---")
 
 with st.expander("こちらをお読みください", expanded=True):
-    st.header("使い方")
+    st.subheader("使い方")
     st.markdown(f"""
-    1.  名前を入力し、**「検査開始」**ボタンを押してください。
+    1.  名前+左,右(例：福田浩右)を入力し、「検査開始」ボタンを押してください。
     2.  各レベルで**最大{TRIALS_PER_LEVEL}問**出題されます。**{CORRECT_TO_PASS}問正解**すると次のレベルに進みます。
     3.  表示されたマークの切れ目の方向をボタンで回答してください。
-    4.  測定を終了したい場合は**「検査終了」**ボタンを押してください。
+    4.  もう見えんかったら「検査終了」ボタンを押してください。
     """)
-    st.header("ご注意")
+    st.subheader("ご注意")
     st.warning("""
     -   画面から少し離れてください。
     -   画面を明るくし、明るい部屋で検査を行ってください。
@@ -158,16 +158,16 @@ else:
             # クリアしたレベルの中から最も良いレベル（数値が大きい）を結果とする
             if st.session_state.cleared_levels:
                 final_level = max([int(lvl) for lvl in st.session_state.cleared_levels])
-                st.success(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
+                st.success(f" {name_to_display} さんの達成レベルは **{final_level}** です")
                 st.balloons()
             else:
                 correct_levels = [int(lvl) for lvl, result in st.session_state.history if result]
                 if correct_levels:
                     final_level = max(correct_levels)
-                    st.warning(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
+                    st.warning(f" {name_to_display} さんの達成レベルは **{final_level}** です")
                 else:
                     final_level = "レベル1未満"
-                    st.error(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
+                    st.error(f" {name_to_display} さんの達成レベルは **{final_level}** です")
 
             # --- Google Sheets に保存 ---
             try:
@@ -185,9 +185,5 @@ else:
                 st.error("結果の保存に失敗しました。")
                 # st.error(e) # デバッグ時にコメント解除
                 
-
-            st.session_state.test_started = False
-            time.sleep(3)
-            st.rerun()
         else:
             st.warning("まだ一度も回答していません。")
