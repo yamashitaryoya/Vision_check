@@ -110,7 +110,7 @@ if "test_started" not in st.session_state:
 st.title("しりょくけんさ")
 st.markdown("---")
 
-with st.expander("こちらをお読みください", expanded=True):
+with st.expander("必ずこちらをお読みください", expanded=True):
     st.subheader("使い方")
     st.markdown(f"""
     1.  氏名を入力し、「検査開始」ボタンを押してください。
