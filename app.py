@@ -76,11 +76,11 @@ if "test_started" not in st.session_state:
 
 
 # --- アプリの表示部分 ---
-st.title("簡易視力検査アプリ")
+st.title("簡易視力検査")
 st.markdown("---")
 
 # --- 使い方と注意書き ---
-with st.expander("初めての方はこちらをお読みください", expanded=True):
+with st.expander("こちらをお読みください", expanded=True):
     st.header("使い方")
     st.markdown("""
     1.  名前を入力し、**「検査開始」**ボタンを押してください。
@@ -108,6 +108,7 @@ name = st.text_input("お名前を入力してください", key="user_name")
 if st.button("検査開始", disabled=st.session_state.test_started):
     if name:
         st.session_state.test_started = True
+        st.session_state.user_name_saved = name  # ← この行を追加
         # 検査開始時に状態をリセット
         st.session_state.current_level = "10"
         st.session_state.history = []
@@ -168,11 +169,11 @@ if st.session_state.test_started:
             
             if correct_levels:
                 final_vision = max(correct_levels)
-                st.success(f"## {name} さんの推定視力は **{final_vision}** です")
+                st.success(f"{st.session_state.user_name_saved} さんの視力は **{final_vision}** です")
                 st.balloons()
             else:
                 final_vision = "0.1未満"
-                st.warning(f"## {name} さんの推定視力は **{final_vision}** です")
+                st.warning(f"{st.session_state.user_name_saved} さんの視力は **{final_vision}** です")
 
             # --- Google Sheets に保存 ---
             if st.session_state.get("gsheet_ready", False):
