@@ -176,14 +176,14 @@ if st.session_state.test_started:
                 st.warning(f"{st.session_state.user_name_saved} さんの視力は **{final_vision}** です")
 
             # --- Google Sheets に保存 ---
-            if st.session_state.get("gsheet_ready", False):
-                try:
-                    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-                    sheet.append_row([timestamp, name, str(final_vision), str(st.session_state.history)])
-                    st.write("結果をGoogle Sheetsに保存しました ✅")
-                except Exception as e:
-                    st.error("結果の保存に失敗しました。")
-                    st.error(e)
+            try:
+                timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                sheet.append_row([timestamp, name, str(final_vision), str(st.session_state.history)])
+                st.write("結果をGoogle Sheetsに保存しました ✅")
+            except Exception as e:
+                st.error("結果の保存に失敗しました。")
+                st.error(e)
+                
             
         else:
             st.warning("まだ一度も回答していません。")
