@@ -39,8 +39,8 @@ MISTAKE_LIMIT = 2     # 失敗となる不正解数
 
 # レベル設定
 VISION_LEVELS = {
-    "1": 19, "2": 18, "3": 17, "4": 16, "5": 15, "6": 14,
-    "7": 13, "8": 12, "9": 11, "10": 10, "11": 9, "12": 8,
+    "1": 20, "2": 15, "3": 12, "4": 9, "5": 7, "6": 5,
+    "7": 4, "8": 3, "9": 2, "10": 1, "11": 9, "12": 8,
     "13": 7, "14": 6, "15": 5, "16": 4, "17": 3, "18": 2, "19": 1
 }
 LEVELS_LIST = list(VISION_LEVELS.keys())
@@ -80,7 +80,7 @@ def end_test():
 # --- Session State の初期化 ---
 def init_test_state():
     """測定状態を初期化/リセットする関数"""
-    st.session_state.current_level = "10"
+    st.session_state.current_level = "1"
     st.session_state.history = []
     st.session_state.correct_direction = random.choice(DIRECTION_NAMES)
     st.session_state.trial_count = 0
