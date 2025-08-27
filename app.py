@@ -172,31 +172,30 @@ else:
                 level_cleared = (st.session_state.correct_count >= CORRECT_TO_PASS)
                 level_failed = (current_incorrect_count >= MISTAKE_LIMIT)
 
-                if level_cleared:
-                    st.toast("レベルクリア！🎉 次のレベルに進みます。")
-                    if level not in st.session_state.cleared_levels:
-                        st.session_state.cleared_levels.append(level)
-                    
-                    idx = LEVELS_LIST.index(level)
-                    if idx < len(LEVELS_LIST) - 1:
-                        st.session_state.current_level = LEVELS_LIST[idx + 1]
-                    
-                    st.session_state.trial_count = 0
-                    st.session_state.correct_count = 0
-                    st.session_state.correct_direction = random.choice(DIRECTION_NAMES)
-                    time.sleep(0.5)
-                    st.rerun()
-
-                elif level_failed:
-                    # ★ 変更点: 失敗したら測定終了関数を呼び出す
+                if level_failed:
                     st.session_state.ended_by_failure = True
                     end_test()
-
+                
                 else:
-                    # 同じレベルで続行
-                    st.session_state.correct_direction = random.choice(DIRECTION_NAMES)
+                    if level_cleared:
+                        st.toast("レベルクリア！🎉 次のレベルに進みます。")
+                        if level not in st.session_state.cleared_levels:
+                            st.session_state.cleared_levels.append(level)
+                        
+                        idx = LEVELS_LIST.index(level)
+                        if idx < len(LEVELS_LIST) - 1:
+                            st.session_state.current_level = LEVELS_LIST[idx + 1]
+                        
+                        st.session_state.trial_count = 0
+                        st.session_state.correct_count = 0
+                        time.sleep(0.5)
+
+                    # ★ 変更点: 現在の向きを除外して次の向きを選択
+                    previous_direction = st.session_state.correct_direction
+                    possible_directions = [d for d in DIRECTION_NAMES if d != previous_direction]
+                    st.session_state.correct_direction = random.choice(possible_directions)
+                    
                     st.rerun()
 
-    # --- ユーザーが手動で終了する場合 ---
     if st.button("測定終了", type="primary"):
         end_test()
