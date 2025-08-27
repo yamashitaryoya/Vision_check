@@ -49,48 +49,29 @@ DIRECTION_NAMES = list(DIRECTIONS.keys())
 
 # --- 測定終了処理を関数化 ---
 def end_test():
-    """測定を終了し、結果を保存・リセットする共通関数"""
-    if st.session_state.history:
-        name_to_display = st.session_state.get("user_name_saved", "被験者")
-        
-        # 失敗により終了した場合のメッセージ
-        if st.session_state.get("ended_by_failure", False):
-            st.warning("2回間違えたため、測定を終了します。")
-            st.session_state.ended_by_failure = False # フラグをリセット
-
-        # 結果を計算
-        if st.session_state.cleared_levels:
-            final_level = max([int(lvl) for lvl in st.session_state.cleared_levels])
-            st.success(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
-            st.balloons()
-        else:
-            correct_levels = [int(lvl) for lvl, result in st.session_state.history if result]
-            if correct_levels:
-                final_level = max(correct_levels)
-                st.warning(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
-            else:
-                final_level = "レベル1未満"
-                st.error(f"## {name_to_display} さんの達成レベルは **{final_level}** です")
-
-        # --- Google Sheets に保存 ---
-        try:
-            timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            row_data = [
-                timestamp, name_to_display, str(final_level),
-                str(st.session_state.cleared_levels), str(st.session_state.history)
-            ]
-            sheet.append_row(row_data)
-            st.write("結果をGoogle Sheetsに保存しました ✅")
-        except Exception as e:
-            st.error("結果の保存に失敗しました。")
-            
-
-        # 状態をリセットして初期画面に戻る
-        st.session_state.test_started = False
-        time.sleep(4) # 結果表示のために長めに待機
-        st.rerun()
+    """測定終了 → 結果を保存"""
+    name = st.session_state.get("user_name_saved", "被験者")
+    if st.session_state.cleared_levels:
+        final_level = max([int(lvl) for lvl in st.session_state.cleared_levels])
+        st.success(f"## {name} さんの達成レベルは **{final_level}** です")
+        st.balloons()
     else:
-        st.warning("まだ一度も回答していません。")
+        final_level = "レベル1未満"
+        st.error(f"## {name} さんの達成レベルは **{final_level}** です")
+
+    # --- Google Sheets に保存 ---
+    try:
+        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        row_data = [timestamp, name, str(final_level)]
+        sheet.append_row(row_data)
+        st.write("結果をGoogle Sheetsに保存しました ✅")
+    except Exception as e:
+        st.error("結果の保存に失敗しました。")
+
+    # 状態をリセット
+    st.session_state.test_started = False
+    time.sleep(4)
+    st.rerun()
 
 # --- Session State の初期化 ---
 def init_test_state():
